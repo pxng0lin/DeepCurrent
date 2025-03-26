@@ -27,6 +27,8 @@ Smart Contract Analyser is a command-line tool that leverages a local LLM to ana
 - **SQLite Database:**  
   Stores analysis outputs persistently in `smart_contracts_analysis.db`.
 
+--------
+
 ## Prerequisites
 
 Before running, ensure you have installed the following:
@@ -63,6 +65,7 @@ http://localhost:11434/v1/completions
 git clone <repository_url>
 cd <repository_directory>
 ```
+--------
 
 ### Running DeepCurrent
 
@@ -73,6 +76,19 @@ Run the script directly with Astral UV:
 ```bash
 uv run DeepCurrent.py
 ```
+### Example of menu:
+![image](https://github.com/user-attachments/assets/0d3efef8-28b2-4854-818f-95a4366ecd57)
+
+#### Option 2:
+![image](https://github.com/user-attachments/assets/82cdc478-c3d9-4440-9094-6d7fdfc2f72c)
+
+#### Chosen Session ID:
+![image](https://github.com/user-attachments/assets/3db6ed4f-a248-4f06-8095-c21cebe3236d)
+
+#### Analysis menu:
+![image](https://github.com/user-attachments/assets/bd73fa50-df7f-4e4e-907e-6c7591f7698d)
+
+-------
 
 ## How to Use DeepCurrent
 
@@ -85,6 +101,8 @@ Upon running the script, you will be prompted:
    - **Analyse a New Directory:** Provide the path to your `.sol` contract files.
    - **Browse Historical Sessions:** Review past analyses and regenerate diagrams as needed.
    - **Exit:** Close the application.
+
+-------
 
 ### Output Structure
 
