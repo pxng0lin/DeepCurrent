@@ -13,6 +13,27 @@ DeepCurrent is a command-line tool that leverages a local LLM to analyse smart c
   Generates diagrams for visualising:
   - **User Journey** through the contract.
   - **Function Call Graph** detailing interactions and dependencies.
+ 
+**Example Output:**
+
+```
+  flowchart TD
+      A[Input] --> C[OptionHandler]
+      C -->| getOrder | D[executeOrder]
+      D --> E[Fail, 'Invalid sender']
+      D --> F[Fail, 'Invalid order']
+      D --> G[Fail, 'Invalid order type']
+      D --> H[Fail, 'Spot price out of bounds']
+      I[prefix calculation] --> J[Fail, 'ERC20 decimals mismatch in oToken conversion']
+      I --> K[Fail, 'ERC20 decimals mismatch in strike conversion']
+      D --> N[LiquidityPool]
+          N --> O[oCollateral]
+      D safeTransfer --> N
+```
+**Example Diagram (transferred to Mermaid.live)**
+
+![image](https://github.com/user-attachments/assets/08a46a32-8be1-4d88-87e8-8988913580e0)
+
 
 - **Interactive Sessions:**  
   Each run generates an output directory (`analysis_YYYYMMDD_HHMMSS`). Historical sessions can be browsed, with reports and diagrams interactively queried or regenerated.
