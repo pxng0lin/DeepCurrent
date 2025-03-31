@@ -8,7 +8,7 @@
 # ///
 
 """
-Smart Contract Analyzer – V1 with Improved Analysis Prompt and Diagram Regeneration Fix
+DeepCurrent – V3 with Improved Diagram Generation & Regeneration Fix
 ----------------------------------------------------------------------------------------
 This app uses a local LLM (default: deepseek-r1) to analyze smart contracts (.sol files)
 from a given directory. It generates separate outputs:
