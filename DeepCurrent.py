@@ -8,15 +8,15 @@
 # ///
 
 """
-Smart Contract Analyzer – V1 with Improved Analysis Prompt and Regeneration Fix
-------------------------------------------------------------------------------
+Smart Contract Analyzer – V1 with Improved Analysis Prompt and Diagram Regeneration Fix
+----------------------------------------------------------------------------------------
 This app uses a local LLM (default: deepseek-r1) to analyze smart contracts (.sol files)
-from a given directory. It produces separate outputs:
+from a given directory. It generates separate outputs:
    • Functions Report
    • Journey Report
    • Journey Diagram (Mermaid, starting with "flowchart TD")
    • Call Diagram (Mermaid)
-These outputs are saved in a timestamped output folder and stored in a SQLite database.
+These outputs are saved in a timestamped folder and stored in a SQLite database.
 The contract submenu includes options to view each report, query them, and check/regenerate diagrams.
 """
 
@@ -33,8 +33,8 @@ console = Console()
 # Global Configurations
 # -------------------------------
 LLM_API_URL = "http://localhost:11434/v1/completions"
-MAX_TOKENS = 8000
-MODEL_NAME = "deepseek-r1"  # default; can be changed at startup
+MAX_TOKENS = 3000
+MODEL_NAME = "deepseek-r1"  # Default; can be changed at startup
 ANALYSIS_MODEL = None
 QUERY_MODEL = None
 
@@ -108,16 +108,14 @@ def call_llm(prompt, model=None):
 # Helper: Extract Mermaid Code
 # -------------------------------
 def extract_mermaid_code(text):
-    # Look for a markdown code block with 'mermaid'
     pattern = r"```mermaid\s*(.*?)```"
     match = re.search(pattern, text, re.DOTALL)
     if match:
         return match.group(1).strip()
-    # Fallback: if text starts with flowchart TD, return the text
     stripped = text.strip()
     if stripped.startswith("flowchart TD") or stripped.startswith("sequenceDiagram"):
         return stripped
-    return text.strip()
+    return stripped
 
 # -------------------------------
 # Phase 1 – Functions Report
@@ -128,8 +126,7 @@ def generate_functions_report(contract_content):
        "Include an OVERVIEW that describes the contract's purpose, its role in the protocol, and key design patterns.\n"
        "Then, list every function along with its parameters, visibility, modifiers, and any potential vulnerabilities.\n"
        "Return the complete report as plain text.\n\n"
-       "Smart Contract Code:\n"
-       "---------------------\n" + contract_content + "\n---------------------\n"
+       "Smart Contract Code:\n---------------------\n" + contract_content + "\n---------------------\n"
     )
     console.print("Generating functions report...")
     output = call_llm(prompt, model=ANALYSIS_MODEL)
@@ -143,10 +140,9 @@ def generate_functions_report(contract_content):
 def generate_journey_report(contract_content):
     prompt = (
        "Phase 2: Generate a detailed user journey for the following smart contract code.\n"
-       "Describe step-by-step how different user types (e.g., admin, regular user) interact with the contract,\n"
-       "including key functions and transitions. Return the journey narrative as plain text.\n\n"
-       "Smart Contract Code:\n"
-       "---------------------\n" + contract_content + "\n---------------------\n"
+       "Describe step-by-step how different user types (e.g., admin, regular user) interact with the contract, including key functions and transitions.\n"
+       "Return the journey narrative as plain text.\n\n"
+       "Smart Contract Code:\n---------------------\n" + contract_content + "\n---------------------\n"
     )
     console.print("Generating journey report...")
     output = call_llm(prompt, model=ANALYSIS_MODEL)
@@ -159,18 +155,24 @@ def generate_journey_report(contract_content):
 # -------------------------------
 def generate_journey_diagram(journey_report):
     prompt = (
-       "Phase 3a: Based on the following user journey description, generate ONLY valid Mermaid diagram text using 'flowchart TD'\n"
-       "that visually represents the flow. Your output MUST start with 'flowchart TD' and include only the diagram code.\n"
-       "Do not include extra commentary or annotations. Use the sample below as a guide:\n\n"
+       "Phase 3a: Based on the following user journey description, generate ONLY valid Mermaid diagram text using 'flowchart TD' that visually represents the flow.\n"
+       "Your output MUST start with 'flowchart TD' and include ONLY the diagram code, exactly in the format as in the sample below.\n"
+       "Do not include any extra commentary or annotations.\n\n"
        "Sample Diagram:\n"
        "---------------------\n"
        "flowchart TD\n"
-       "    Start[Start] --> PrepareLoan[Prepare loan data]\n"
-       "    PrepareLoan --> Claim[Call claim function]\n"
-       "    Claim --> RedeemNote[Redeem note]\n"
-       "    Repay_Loan[Prepare for repayment] -- Check if active --> ForceRepay[Force repay]\n"
-       "    RedeemNote --> Repay[Lender receives payment]\n"
-       "---------------------\n\n"
+       "    A[Input] --> C[OptionHandler]\n"
+       "    C -->| getOrder | D[executeOrder]\n"
+       "    D -->| authorizenot? | E[Fail, 'Invalid sender']\n"
+       "    D -->| ordernotvalid? | F[Fail, 'Invalid order']\n"
+       "    D -->| validordertypenot? | G[Fail, 'Invalid order type']\n"
+       "    D -->| spotnotinrangenot? | H[Fail, 'Spot price out of bounds']\n"
+       "    D -->| premiumcalculated? | I[prefix calculation]\n"
+       "    I -->| fromerc0decimalsnot? | J[Fail, 'ERC20 decimals mismatch in oToken conversion']\n"
+       "    I -->| toerc1decimalsnot? | K[Fail, 'ERC20 decimals mismatch in strike conversion']\n"
+       "    J --> L[transfer oTokens]\n"
+       "    K --> L\n"
+       "    K -->| toerc1collateralnot? | M[Fail, 'ERC20 decimals mismatch for collateral asset']\n\n"
        "User Journey Description:\n"
        "-------------------------\n" + journey_report + "\n-------------------------\n"
     )
@@ -189,9 +191,28 @@ def generate_journey_diagram(journey_report):
 # -------------------------------
 def generate_call_diagram(functions_report):
     prompt = (
-       "Phase 3b: Based on the following functions report, generate ONLY valid Mermaid diagram text using 'flowchart TD'\n"
-       "that represents the function call graph. Node labels must be simple without extra symbols or annotations.\n"
-       "Use proper diamond notation for conditions if needed. Return only the diagram code.\n\n"
+       "Phase 3b: Based on the following functions report, generate ONLY valid Mermaid diagram text using 'flowchart TD' that represents the function call graph.\n"
+       "Node labels must be simple without extra symbols or annotations; use proper diamond notation for conditions if needed.\n"
+       "Return ONLY the diagram code in EXACTLY the format as shown in the sample below, without any additional commentary.\n\n"
+       "Sample Diagram:\n"
+       "---------------------\n"
+       "flowchart TD\n"
+       "    A[Input] --> C[OptionHandler]\n"
+       "    C -->| getOrder | D[executeOrder]\n"
+       "    D -->| authorizenot? | E[Fail, 'Invalid sender']\n"
+       "    D -->| ordernotvalid? | F[Fail, 'Invalid order']\n"
+       "    D -->| validordertypenot? | G[Fail, 'Invalid order type']\n"
+       "    D -->| spotnotinrangenot? | H[Fail, 'Spot price out of bounds']\n"
+       "    D -->| premiumcalculated? | I[prefix calculation]\n"
+       "    I -->| fromerc0decimalsnot? | J[Fail, 'ERC20 decimals mismatch in oToken conversion']\n"
+       "    I -->| toerc1decimalsnot? | K[Fail, 'ERC20 decimals mismatch in strike conversion']\n"
+       "    J --> L[transfer oTokens]\n"
+       "    K --> L\n"
+       "    K -->| toerc1collateralnot? | M[Fail, 'ERC20 decimals mismatch for collateral asset']\n\n"
+       "    D -->| safeTransfer | N[LiquidityPool]\n"
+       "    N -->| safeTransfer | O[oCollateral]\n\n"
+       "    D -->| updateOTokenHoldings | P[OptionHandler]\n\n"
+       "Return only the diagram code.\n\n"
        "Functions Report:\n"
        "-----------------\n" + functions_report + "\n-----------------\n"
     )
