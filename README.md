@@ -145,3 +145,7 @@ Results are stored in a timestamped directory (`analysis_YYYYMMDD_HHMMSS`) conta
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit pull requests to suggest improvements, fix bugs, or add features.
+
+## Acknowledgments
+
+- Developed by [pxng0lin/ThΞ CxgΞ
