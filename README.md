@@ -148,4 +148,4 @@ Contributions are welcome! Please fork the repository and submit pull requests t
 
 ## Acknowledgments
 
-- Developed by [pxng0lin/ThΞ CxgΞ
+- Developed by pxng0lin/ThΞ CxgΞ
